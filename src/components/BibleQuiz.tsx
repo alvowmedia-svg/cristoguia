@@ -3,25 +3,38 @@ import { Award, CheckCircle2, XCircle, RotateCcw, Download, BookOpen, ChevronRig
 import { THEOLOGICAL_QUIZ_QUESTIONS } from '../data/quiz-questions';
 
 export const BibleQuiz: React.FC = () => {
-  const loadState = (key, defaultVal) => {
-    if (typeof window === 'undefined') return defaultVal;
+  const getInitialState = () => {
+    const estadoInicial = {
+      selectedLevel: 'neofito',
+      currentIndex: 0,
+      selectedAnswer: null,
+      score: 0,
+      showFeedback: false,
+      quizFinished: false,
+      userName: 'Servo(a) de Deus'
+    };
+    if (typeof window === 'undefined') return estadoInicial;
     try {
-       const saved = localStorage.getItem('cristoguia_quiz_state');
-       if (saved) {
-         const parsed = JSON.parse(saved);
-         if (parsed[key] !== undefined) return parsed[key];
-       }
-    } catch (e) {}
-    return defaultVal;
+      const salvo = localStorage.getItem('cristoguia_quiz_state');
+      if (!salvo || salvo === 'undefined' || salvo === 'null') return estadoInicial;
+      const parsed = JSON.parse(salvo);
+      if (typeof parsed !== 'object' || parsed === null) return estadoInicial;
+      return { ...estadoInicial, ...parsed };
+    } catch (e) {
+      return estadoInicial;
+    }
   };
 
-  const [selectedLevel, setSelectedLevel] = useState<'neofito' | 'discipulo' | 'mestre'>(() => loadState('selectedLevel', 'neofito'));
-  const [currentIndex, setCurrentIndex] = useState<number>(() => loadState('currentIndex', 0));
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(() => loadState('selectedAnswer', null));
-  const [score, setScore] = useState<number>(() => loadState('score', 0));
-  const [showFeedback, setShowFeedback] = useState<boolean>(() => loadState('showFeedback', false));
-  const [quizFinished, setQuizFinished] = useState<boolean>(() => loadState('quizFinished', false));
-  const [userName, setUserName] = useState<string>(() => loadState('userName', 'Servo(a) de Deus'));
+  const initialState = getInitialState();
+  const [selectedLevel, setSelectedLevel] = useState<'neofito' | 'discipulo' | 'mestre'>(
+    ['neofito', 'discipulo', 'mestre'].includes(initialState.selectedLevel) ? initialState.selectedLevel : 'neofito'
+  );
+  const [currentIndex, setCurrentIndex] = useState<number>(initialState.currentIndex || 0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(initialState.selectedAnswer);
+  const [score, setScore] = useState<number>(initialState.score || 0);
+  const [showFeedback, setShowFeedback] = useState<boolean>(!!initialState.showFeedback);
+  const [quizFinished, setQuizFinished] = useState<boolean>(!!initialState.quizFinished);
+  const [userName, setUserName] = useState<string>(initialState.userName || 'Servo(a) de Deus');
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -34,7 +47,12 @@ export const BibleQuiz: React.FC = () => {
   const certificateCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const questions = THEOLOGICAL_QUIZ_QUESTIONS.filter(q => q.level === selectedLevel);
-  const currentQ = questions[currentIndex] || questions[0];
+  // Fallback seguro caso as perguntas não existam ou selectedLevel seja inválido
+  const safeQuestions = questions.length > 0 ? questions : THEOLOGICAL_QUIZ_QUESTIONS.filter(q => q.level === 'neofito');
+  const safeIndex = currentIndex >= 0 && currentIndex < safeQuestions.length ? currentIndex : 0;
+  const currentQ = safeQuestions[safeIndex] || {
+    question: "Carregando...", options: [], correctIndex: 0, theologicalRationale: "", passageRef: "", biblicalProof: ""
+  };
 
   const handleSelectOption = (index: number) => {
     if (showFeedback) return;

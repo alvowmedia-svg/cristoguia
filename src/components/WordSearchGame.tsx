@@ -9,29 +9,41 @@ interface CellPosition {
 }
 
 export const WordSearchGame: React.FC = () => {
-  const loadState = (key, defaultVal) => {
-    if (typeof window === 'undefined') return defaultVal;
+  const getInitialState = () => {
+    const estadoInicial = {
+      currentThemeId: WORD_SEARCH_THEMES[0]?.id || 'wst-01',
+      grid: [],
+      foundWords: [],
+      foundCoordinates: {},
+      elapsedSeconds: 0,
+      gameWon: false,
+      hideWordList: false
+    };
+    if (typeof window === 'undefined') return estadoInicial;
     try {
-      const saved = localStorage.getItem('cristoguia_wordsearch_state');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed[key] !== undefined) return parsed[key];
-      }
-    } catch (e) {}
-    return defaultVal;
+      const salvo = localStorage.getItem('cristoguia_wordsearch_state');
+      if (!salvo || salvo === 'undefined' || salvo === 'null') return estadoInicial;
+      const parsed = JSON.parse(salvo);
+      if (typeof parsed !== 'object' || parsed === null) return estadoInicial;
+      return { ...estadoInicial, ...parsed };
+    } catch (e) {
+      return estadoInicial;
+    }
   };
 
+  const initialState = getInitialState();
   const [currentTheme, setCurrentTheme] = useState<WordSearchTheme>(() => {
-    const savedId = loadState('currentThemeId', WORD_SEARCH_THEMES[0].id);
-    return WORD_SEARCH_THEMES.find(t => t.id === savedId) || WORD_SEARCH_THEMES[0];
+    return WORD_SEARCH_THEMES.find(t => t.id === initialState.currentThemeId) || WORD_SEARCH_THEMES[0] || { id: 'wst-00', title: 'Carregando', subtitle: '', words: [] };
   });
   const [gridSize] = useState<number>(12);
-  const [grid, setGrid] = useState<string[][]>(() => loadState('grid', []));
-  const [foundWords, setFoundWords] = useState<string[]>(() => loadState('foundWords', []));
-  const [foundCoordinates, setFoundCoordinates] = useState<{ [word: string]: CellPosition[] }>(() => loadState('foundCoordinates', {}));
-  const [elapsedSeconds, setElapsedSeconds] = useState(() => loadState('elapsedSeconds', 0));
-  const [gameWon, setGameWon] = useState(() => loadState('gameWon', false));
-  const [hideWordList, setHideWordList] = useState(() => loadState('hideWordList', false));
+  const [grid, setGrid] = useState<string[][]>(Array.isArray(initialState.grid) ? initialState.grid : []);
+  const [foundWords, setFoundWords] = useState<string[]>(Array.isArray(initialState.foundWords) ? initialState.foundWords : []);
+  const [foundCoordinates, setFoundCoordinates] = useState<{ [word: string]: CellPosition[] }>(
+    typeof initialState.foundCoordinates === 'object' && initialState.foundCoordinates !== null ? initialState.foundCoordinates : {}
+  );
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(initialState.elapsedSeconds || 0);
+  const [gameWon, setGameWon] = useState<boolean>(!!initialState.gameWon);
+  const [hideWordList, setHideWordList] = useState<boolean>(!!initialState.hideWordList);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -108,6 +120,7 @@ export const WordSearchGame: React.FC = () => {
       [-1, 1]   // diagonal subindo
     ];
 
+    if (!theme || !theme.words) return;
     theme.words.forEach(w => {
       const term = w.term.toUpperCase();
       let placed = false;
