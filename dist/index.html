@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <script>
+      // Defensivamente garante que window.fetch e Window.prototype.fetch tenham setter
+      // prevenindo o erro "Cannot set property fetch of #<Window> which has only a getter"
+      (function() {
+        try {
+          var _rawFetch = window.fetch ? window.fetch.bind(window) : undefined;
+          var patch = function(target) {
+            try {
+              var desc = Object.getOwnPropertyDescriptor(target, 'fetch');
+              if (!desc || !desc.set) {
+                Object.defineProperty(target, 'fetch', {
+                  get: function() { return _rawFetch; },
+                  set: function(val) { _rawFetch = typeof val === 'function' ? val.bind(window) : val; },
+                  configurable: true,
+                  enumerable: true
+                });
+              }
+            } catch (_) {}
+          };
+          if (typeof Window !== 'undefined' && Window.prototype) {
+            patch(Window.prototype);
+          }
+          if (typeof window !== 'undefined') {
+            patch(window);
+          }
+        } catch (e) {
+          console.warn('Fetch setter patch failed:', e);
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portal Cristo Guia | Sagradas Escrituras, Exegese e Sabedoria Bíblica</title>
+    <meta name="description" content="Portal de referência internacional sobre as Escrituras Sagradas, combinando rigor teológico, curadoria editorial e ferramentas de leitura, estudo e sabedoria bíblica." />
+    <meta property="og:title" content="Portal Cristo Guia | Sagradas Escrituras" />
+    <meta property="og:description" content="Luz para os teus passos, alimento para a tua alma. Versículo do dia determinístico, Bíblia completa, desafios da fé e crônicas arqueológicas." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script type="module" crossorigin src="/assets/index-c8R00qVb.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-C5JAXQAZ.css">
+  </head>
+  <body class="bg-[#FBF9F4] text-[#1C1917] antialiased selection:bg-[#C5A059]/20 selection:text-[#1C1917]">
+    <div id="root"></div>
+  </body>
+</html>
+
