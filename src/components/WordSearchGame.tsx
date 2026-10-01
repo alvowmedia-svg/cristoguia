@@ -9,32 +9,56 @@ interface CellPosition {
 }
 
 export const WordSearchGame: React.FC = () => {
-  const [currentTheme, setCurrentTheme] = useState<WordSearchTheme>(WORD_SEARCH_THEMES[0]);
+  const loadState = (key, defaultVal) => {
+    if (typeof window === 'undefined') return defaultVal;
+    try {
+      const saved = localStorage.getItem('cristoguia_wordsearch_state');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed[key] !== undefined) return parsed[key];
+      }
+    } catch (e) {}
+    return defaultVal;
+  };
+
+  const [currentTheme, setCurrentTheme] = useState<WordSearchTheme>(() => {
+    const savedId = loadState('currentThemeId', WORD_SEARCH_THEMES[0].id);
+    return WORD_SEARCH_THEMES.find(t => t.id === savedId) || WORD_SEARCH_THEMES[0];
+  });
   const [gridSize] = useState<number>(12);
-  const [grid, setGrid] = useState<string[][]>([]);
-  const [foundWords, setFoundWords] = useState<string[]>([]);
-  const [foundCoordinates, setFoundCoordinates] = useState<{ [word: string]: CellPosition[] }>({});
+  const [grid, setGrid] = useState<string[][]>(() => loadState('grid', []));
+  const [foundWords, setFoundWords] = useState<string[]>(() => loadState('foundWords', []));
+  const [foundCoordinates, setFoundCoordinates] = useState<{ [word: string]: CellPosition[] }>(() => loadState('foundCoordinates', {}));
+  const [elapsedSeconds, setElapsedSeconds] = useState(() => loadState('elapsedSeconds', 0));
+  const [gameWon, setGameWon] = useState(() => loadState('gameWon', false));
+  const [hideWordList, setHideWordList] = useState(() => loadState('hideWordList', false));
 
-  // Seleção ativa por toque ou mouse
-  const [isSelecting, setIsSelecting] = useState(false);
-  const [selectionStart, setSelectionStart] = useState<CellPosition | null>(null);
-  const [selectionCurrent, setSelectionCurrent] = useState<CellPosition | null>(null);
-  const [activeSelectedCells, setActiveSelectedCells] = useState<CellPosition[]>([]);
-
-  // Microficha com significado bíblico ao encontrar a palavra
-  const [activeMicroficha, setActiveMicroficha] = useState<WordSearchWord | null>(null);
-
-  // Cronômetro
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [gameWon, setGameWon] = useState(false);
-  const [hideWordList, setHideWordList] = useState(false);
-
-  // Inicializa o tabuleiro
   useEffect(() => {
-    generateBoard(currentTheme);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cristoguia_wordsearch_state', JSON.stringify({
+        currentThemeId: currentTheme.id, grid, foundWords, foundCoordinates, elapsedSeconds, gameWon, hideWordList
+      }));
+    }
+  }, [currentTheme, grid, foundWords, foundCoordinates, elapsedSeconds, gameWon, hideWordList]);
+
+  useEffect(() => {
+    if (grid.length === 0) {
+      generateBoard(currentTheme);
+      setElapsedSeconds(0);
+      setGameWon(false);
+    }
+  }, [currentTheme]); // Only generate if grid is empty (e.g. initial load without cache or theme change handled below)
+
+  const handleRestart = (theme = currentTheme) => {
+    generateBoard(theme);
     setElapsedSeconds(0);
     setGameWon(false);
-  }, [currentTheme]);
+  };
+
+  const handleChangeTheme = (theme: WordSearchTheme) => {
+    setCurrentTheme(theme);
+    handleRestart(theme);
+  };
 
   // Timer
   useEffect(() => {
@@ -56,6 +80,23 @@ export const WordSearchGame: React.FC = () => {
    * Algoritmo de posicionamento de palavras bíblicas
    */
   const generateBoard = (theme: WordSearchTheme) => {
+  // PRNG Determinístico baseado na data atual
+  const getSeededRandom = () => {
+    const date = new Date();
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    let seed = 0;
+    for (let i = 0; i < dateKey.length; i++) {
+      seed = (seed << 5) - seed + dateKey.charCodeAt(i);
+      seed |= 0;
+    }
+    return () => {
+      let t = seed += 0x6D2B79F5;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  };
+    const random = getSeededRandom();
     const size = gridSize;
     const newGrid: string[][] = Array.from({ length: size }, () => Array(size).fill(''));
     const placedPositions: { [word: string]: CellPosition[] } = {};
@@ -74,7 +115,7 @@ export const WordSearchGame: React.FC = () => {
 
       while (!placed && attempts < 150) {
         attempts++;
-        const dir = directions[Math.floor(Math.random() * directions.length)];
+        const dir = directions[Math.floor(random() * directions.length)];
         const [dr, dc] = dir;
 
         const maxR = dr === 1 ? size - term.length : dr === -1 ? size - 1 : size - 1;
@@ -83,8 +124,8 @@ export const WordSearchGame: React.FC = () => {
 
         if (maxR < minR || maxC < 0) continue;
 
-        const startR = Math.floor(Math.random() * (maxR - minR + 1)) + minR;
-        const startC = Math.floor(Math.random() * (maxC + 1));
+        const startR = Math.floor(random() * (maxR - minR + 1)) + minR;
+        const startC = Math.floor(random() * (maxC + 1));
 
         let canPlace = true;
         const positions: CellPosition[] = [];
@@ -116,7 +157,7 @@ export const WordSearchGame: React.FC = () => {
     for (let r = 0; r < size; r++) {
       for (let c = 0; c < size; c++) {
         if (!newGrid[r][c]) {
-          newGrid[r][c] = letters[Math.floor(Math.random() * letters.length)];
+          newGrid[r][c] = letters[Math.floor(random() * letters.length)];
         }
       }
     }
@@ -246,7 +287,7 @@ export const WordSearchGame: React.FC = () => {
 
             {/* Botão Reiniciar */}
             <button
-              onClick={() => generateBoard(currentTheme)}
+              onClick={() => handleRestart(currentTheme)}
               className="p-2 border border-[#E8E2D5] rounded-xl bg-white hover:bg-[#F8F5EE] text-[#1B365D] hover:border-[#C99700] transition-colors shadow-xs"
               title="Embaralhar novo tabuleiro"
             >
@@ -263,7 +304,7 @@ export const WordSearchGame: React.FC = () => {
           {WORD_SEARCH_THEMES.map(theme => (
             <button
               key={theme.id}
-              onClick={() => setCurrentTheme(theme)}
+              onClick={() => handleChangeTheme(theme)}
               className={`px-3.5 py-1.5 rounded-xl border font-bold transition-all shadow-xs ${
                 currentTheme.id === theme.id
                   ? 'bg-[#1B365D] text-white border-[#1B365D]'

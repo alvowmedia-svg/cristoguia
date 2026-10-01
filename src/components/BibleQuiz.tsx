@@ -3,14 +3,33 @@ import { Award, CheckCircle2, XCircle, RotateCcw, Download, BookOpen, ChevronRig
 import { THEOLOGICAL_QUIZ_QUESTIONS } from '../data/quiz-questions';
 
 export const BibleQuiz: React.FC = () => {
-  const [selectedLevel, setSelectedLevel] = useState<'neofito' | 'discipulo' | 'mestre'>('neofito');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [quizFinished, setQuizFinished] = useState(false);
-  const [certificateOpen, setCertificateOpen] = useState(false);
-  const [userName, setUserName] = useState('Servo(a) de Deus');
+  const loadState = (key, defaultVal) => {
+    if (typeof window === 'undefined') return defaultVal;
+    try {
+       const saved = localStorage.getItem('cristoguia_quiz_state');
+       if (saved) {
+         const parsed = JSON.parse(saved);
+         if (parsed[key] !== undefined) return parsed[key];
+       }
+    } catch (e) {}
+    return defaultVal;
+  };
+
+  const [selectedLevel, setSelectedLevel] = useState<'neofito' | 'discipulo' | 'mestre'>(() => loadState('selectedLevel', 'neofito'));
+  const [currentIndex, setCurrentIndex] = useState<number>(() => loadState('currentIndex', 0));
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(() => loadState('selectedAnswer', null));
+  const [score, setScore] = useState<number>(() => loadState('score', 0));
+  const [showFeedback, setShowFeedback] = useState<boolean>(() => loadState('showFeedback', false));
+  const [quizFinished, setQuizFinished] = useState<boolean>(() => loadState('quizFinished', false));
+  const [userName, setUserName] = useState<string>(() => loadState('userName', 'Servo(a) de Deus'));
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cristoguia_quiz_state', JSON.stringify({
+        selectedLevel, currentIndex, selectedAnswer, score, showFeedback, quizFinished, userName
+      }));
+    }
+  }, [selectedLevel, currentIndex, selectedAnswer, score, showFeedback, quizFinished, userName]);
 
   const certificateCanvasRef = useRef<HTMLCanvasElement | null>(null);
 

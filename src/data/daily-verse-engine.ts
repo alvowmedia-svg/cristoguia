@@ -183,23 +183,46 @@ export const DAILY_VERSES_ARCHIVE: DailyVerse[] = [
  * A fórmula de hash gera uma rotação sólida pelos 365 dias do ano.
  */
 export function getDailyVerseForDate(date: Date = new Date()): DailyVerse {
-  // Ajuste para garantir fuso horário coerente
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
   const day = date.getDate();
 
-  // Função hash determinística dia-a-dia
   const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  const storageKey = 'cristoguia_daily_message';
+
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem(storageKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.dateKey === dateKey) {
+          return parsed.verse;
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao ler daily message do localStorage:', e);
+    }
+  }
+
   let hash = 0;
   for (let i = 0; i < dateKey.length; i++) {
     hash = (hash << 5) - hash + dateKey.charCodeAt(i);
-    hash |= 0; // Converte para inteiro de 32-bits
+    hash |= 0;
   }
   
-  // Mapeia para o arquivo de versículos
   const positiveHash = Math.abs(hash);
   const index = positiveHash % DAILY_VERSES_ARCHIVE.length;
-  return DAILY_VERSES_ARCHIVE[index];
+  const verse = DAILY_VERSES_ARCHIVE[index];
+
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({ dateKey, verse }));
+    } catch (e) {
+      console.error('Erro ao salvar daily message:', e);
+    }
+  }
+
+  return verse;
 }
 
 /**
