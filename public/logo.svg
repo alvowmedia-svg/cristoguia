@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" fill="none">
+  <!-- ============================================== -->
+  <!-- LOGOMARCA OFICIAL PORTAL CRISTO GUIA (EXATA)   -->
+  <!-- Baseada fielmente na arte fornecida pelo autor -->
+  <!-- Cor canônica: #2A1A10                          -->
+  <!-- ============================================== -->
+
+  <!-- 1. BRAÇOS DA CRUZ DE FUNDO (CROSS PATTÉE ALARGADA) -->
+  <g fill="#2A1A10">
+    <!-- Braço Superior -->
+    <path d="M175 44 C185 43 215 43 225 44 C224 64 219 82 210 94 C205 92 195 92 190 94 C181 82 176 64 175 44 Z"/>
+    <path d="M175 44 C173 52 178 72 186 86 C183 92 188 96 193 98 C185 86 182 66 175 44 Z"/>
+
+    <!-- Braço Esquerdo -->
+    <path d="M120 100 C125 110 125 130 120 140 C138 138 152 133 162 126 C162 120 162 118 162 114 C152 107 138 102 120 100 Z"/>
+
+    <!-- Braço Direito -->
+    <path d="M280 100 C275 110 275 130 280 140 C262 138 248 133 238 126 C238 120 238 118 238 114 C248 107 262 102 280 100 Z"/>
+
+    <!-- Base Inferior da Cruz -->
+    <path d="M174 230 C182 230 218 230 226 230 C226 238 227 242 229 246 C216 245 184 245 171 246 C173 242 174 238 174 230 Z"/>
+  </g>
+
+  <!-- Braços da Cruz Completa (Geometria Flared com Curvatura Elegante) -->
+  <path d="M174 44 C190 42 210 42 226 44 C225 68 218 90 200 96 C182 90 175 68 174 44 Z" fill="#2A1A10"/>
+  <path d="M120 98 C124 112 124 128 120 142 C142 139 162 134 168 120 C162 106 142 101 120 98 Z" fill="#2A1A10"/>
+  <path d="M280 98 C276 112 276 128 280 142 C258 139 238 134 232 120 C238 106 258 101 280 98 Z" fill="#2A1A10"/>
+  <path d="M174 228 H226 L230 248 H170 L174 228 Z" fill="#2A1A10"/>
+
+  <!-- 2. HALO / NIMBO CIRCULAR -->
+  <circle cx="200" cy="120" r="44" fill="#FFFFFF" stroke="#2A1A10" stroke-width="4"/>
+
+  <!-- 12 Raios do Halo -->
+  <g stroke="#2A1A10" stroke-width="3" stroke-linecap="round">
+    <line x1="200" y1="83" x2="200" y2="92"/>
+    <line x1="218" y1="86" x2="213" y2="95"/>
+    <line x1="233" y1="96" x2="225" y2="103"/>
+    <line x1="238" y1="111" x2="229" y2="114"/>
+    <line x1="239" y1="126" x2="230" y2="126"/>
+    <line x1="233" y1="140" x2="225" y2="136"/>
+    <line x1="182" y1="86" x2="187" y2="95"/>
+    <line x1="167" y1="96" x2="175" y2="103"/>
+    <line x1="162" y1="111" x2="171" y2="114"/>
+    <line x1="161" y1="126" x2="170" y2="126"/>
+    <line x1="167" y1="140" x2="175" y2="136"/>
+  </g>
+
+  <!-- 3. CRISTO - CABELO E SILHUETA -->
+  <!-- Silhueta Externa do Cabelo -->
+  <path d="M200 95 C182 95 174 106 174 125 C174 140 178 152 182 158 C184 150 185 142 186 136 C187 126 190 114 196 108 C198 106 202 106 204 108 C210 114 213 126 214 136 C215 142 216 150 218 158 C222 152 226 140 226 125 C226 106 218 95 200 95 Z" fill="#2A1A10"/>
+
+  <!-- Rosto Iluminado -->
+  <path d="M186 116 C186 132 192 144 200 144 C208 144 214 132 214 116 C214 110 209 108 200 108 C191 108 186 110 186 116 Z" fill="#FFFFFF"/>
+
+  <!-- Feições Faciais Serenas -->
+  <!-- Sobrancelhas Arqueadas -->
+  <path d="M190 118 C193 116 196 117 198 119" stroke="#2A1A10" stroke-width="2" stroke-linecap="round"/>
+  <path d="M210 118 C207 116 204 117 202 119" stroke="#2A1A10" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Olhos Serenos -->
+  <path d="M191 122 C193 124 196 124 197 122" stroke="#2A1A10" stroke-width="2" stroke-linecap="round"/>
+  <path d="M209 122 C207 124 204 124 203 122" stroke="#2A1A10" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Nariz -->
+  <path d="M200 119 V128 L197 130" stroke="#2A1A10" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Bigode e Barba Esculpida -->
+  <path d="M192 133 C196 131 200 133 200 133 C200 133 204 131 208 133 C209 135 206 138 203 138 C200 138 200 136 200 136 C200 136 200 138 197 138 C194 138 191 135 192 133 Z" fill="#2A1A10"/>
+  <path d="M190 136 C188 142 193 154 200 154 C207 154 212 142 210 136 C206 140 204 141 200 141 C196 141 194 140 190 136 Z" fill="#2A1A10"/>
+
+  <!-- 4. MÃO DIREITA ERGUIDA EM BÊNÇÃO (À ESQUERDA DA IMAGEM) -->
+  <g fill="#FFFFFF" stroke="#2A1A10" stroke-width="2.2" stroke-linejoin="round">
+    <!-- Dedos levantados em gesto de bênção -->
+    <path d="M168 135 C168 130 170 128 172 128 C174 128 175 130 175 135 V146 H173 Z"/>
+    <path d="M172 128 C172 124 174 122 176 122 C178 122 179 124 179 128 V145 H177 Z"/>
+    <path d="M176 122 C176 119 178 118 180 118 C182 118 183 119 183 124 V144 H181 Z"/>
+    <path d="M180 118 C180 116 182 115 184 115 C186 115 187 116 187 120 V143 H185 Z"/>
+    <!-- Polegar -->
+    <path d="M187 132 C189 133 191 135 190 138 C189 141 187 143 185 145 L183 140 Z"/>
+    <!-- Palma da Mão e Pulso -->
+    <path d="M168 136 C167 146 170 158 174 163 C178 161 185 152 186 144 C186 140 184 136 168 136 Z" fill="#FFFFFF"/>
+  </g>
+  <path d="M170 154 C174 155 178 153 182 149" stroke="#2A1A10" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- 5. TÚNICA E MANTO DIAGONAL -->
+  <!-- Corpo Principal da Túnica -->
+  <path d="M174 163 C178 158 186 154 193 153 C196 156 204 156 207 153 C214 154 222 158 226 163 L236 188 C225 193 210 196 200 196 C190 196 175 193 164 188 Z" fill="#FFFFFF" stroke="#2A1A10" stroke-width="2.8"/>
+
+  <!-- Dobras e Sombreamento do Manto no Peito -->
+  <path d="M225 163 C218 170 205 180 186 194" stroke="#2A1A10" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M229 173 C222 180 210 188 193 198" stroke="#2A1A10" stroke-width="3" stroke-linecap="round"/>
+  <path d="M233 183 C226 189 216 196 203 201" stroke="#2A1A10" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M193 156 C195 162 205 162 207 156" stroke="#2A1A10" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Ombro e Manga Esquerda Sombreada -->
+  <path d="M236 188 L232 173 C230 166 228 160 225 158 L227 173 Z" fill="#2A1A10"/>
+  <path d="M164 188 L168 173 C170 166 172 160 175 158 L173 173 Z" fill="#2A1A10"/>
+
+  <!-- Base da Túnica Recortada -->
+  <path d="M174 200 C185 204 215 204 226 200 L226 228 H174 L174 200 Z" fill="#2A1A10"/>
+
+  <!-- 6. TIPOGRAFIA CLÁSSICA: CRISTO GUIA (EXATA) -->
+  <g fill="#2A1A10" text-anchor="middle" font-weight="900" letter-spacing="4">
+    <text x="200" y="292" font-family="'Cinzel', 'Trajan Pro', 'Georgia', serif" font-size="44">CRISTO</text>
+    <text x="200" y="342" font-family="'Cinzel', 'Trajan Pro', 'Georgia', serif" font-size="44" letter-spacing="6">GUIA</text>
+  </g>
+</svg>

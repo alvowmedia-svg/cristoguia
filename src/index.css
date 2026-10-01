@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-cinzel: 'Cinzel', serif;
+    --font-garamond: 'Cormorant Garamond', Georgia, serif;
+    --font-lora: 'Lora', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+    /* Paleta Luminosa e Calorosa Cristã */
+    --bg-page: #FCFBF7;
+    --bg-surface: #FFFFFF;
+    --bg-surface-warm: #F8F5EE;
+    --bg-surface-gold: #FFF9E6;
+    
+    --text-primary: #1C2430;
+    --text-body: #333F4E;
+    --text-muted: #5E6D82;
+
+    --color-gold: #C99700;
+    --color-gold-warm: #E5B21A;
+    --color-gold-deep: #A07800;
+    --color-navy: #1B365D;
+    --color-navy-light: #254A80;
+    --color-ruby: #8E2838;
+    --color-olive: #2E5A36;
+    --border-light: #E8E2D5;
+  }
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-garamond {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.font-lora {
+  font-family: 'Lora', Georgia, serif;
+}
+
+.font-sans-ui {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+/* Capitular elegante para leitura */
+.drop-cap::first-letter {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  float: left;
+  font-size: 3.6rem;
+  line-height: 0.85;
+  padding-top: 4px;
+  padding-right: 12px;
+  padding-bottom: 2px;
+  font-weight: 700;
+  color: #C99700;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Scrollbar suave */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #F8F5EE;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4A936;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A07800;
+}
