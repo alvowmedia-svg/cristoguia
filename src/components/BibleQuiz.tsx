@@ -49,7 +49,8 @@ export const BibleQuiz: React.FC = () => {
   const certificateCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const questions = THEOLOGICAL_QUIZ_QUESTIONS.filter(q => q.level === selectedLevel);
-  const currentQ = questions[currentIndex];
+  const safeIndex = currentIndex >= 0 && currentIndex < questions.length ? currentIndex : 0;
+  const currentQ = questions[safeIndex];
 
   if (!quizFinished && (!questions || questions.length === 0 || !currentQ)) {
     return <div className="p-10 text-center font-sans-ui text-[#5E6D82] font-bold bg-white rounded-3xl border-2 border-[#E8E2D5]">Carregando desafios ou reiniciando nível...</div>;
@@ -75,6 +76,9 @@ export const BibleQuiz: React.FC = () => {
   };
 
   const handleRestart = (level?: 'neofito' | 'discipulo' | 'mestre') => {
+    try {
+      localStorage.removeItem('cristoguia_quiz_state');
+    } catch(e) {}
     if (level) setSelectedLevel(level);
     setCurrentIndex(0);
     setSelectedAnswer(null);

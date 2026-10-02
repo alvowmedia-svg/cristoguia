@@ -64,6 +64,9 @@ export const WordSearchGame: React.FC = () => {
   }, [currentTheme]); // Only generate if grid is empty (e.g. initial load without cache or theme change handled below)
 
   const handleRestart = (theme = currentTheme) => {
+    try {
+      localStorage.removeItem('cristoguia_wordsearch_state');
+    } catch(e) {}
     generateBoard(theme);
     setElapsedSeconds(0);
     setGameWon(false);
@@ -152,6 +155,12 @@ export const WordSearchGame: React.FC = () => {
         for (let i = 0; i < term.length; i++) {
           const r = startR + i * dr;
           const c = startC + i * dc;
+          
+          if (r < 0 || r >= size || c < 0 || c >= size) {
+             canPlace = false;
+             break;
+          }
+          
           const currentCell = newGrid[r][c];
 
           if (currentCell !== '' && currentCell !== term[i]) {
@@ -163,7 +172,9 @@ export const WordSearchGame: React.FC = () => {
 
         if (canPlace) {
           positions.forEach((pos, i) => {
-            newGrid[pos.r][pos.c] = term[i];
+            if (pos.r >= 0 && pos.r < size && pos.c >= 0 && pos.c < size) {
+              newGrid[pos.r][pos.c] = term[i];
+            }
           });
           placedPositions[term] = positions;
           placed = true;

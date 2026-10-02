@@ -16,9 +16,35 @@ import { EDITORIAL_ARTICLES } from './data/articles';
 
 const HIGHLIGHTS_STORAGE_KEY = 'cristoguia_highlights_v1';
 
+  const getPathFromState = (tab: string, subTab: string) => {
+    if (tab === 'daily') return '/palavra-do-dia';
+    if (tab === 'bible') return '/biblia-sagrada';
+    if (tab === 'moments') return '/para-o-seu-momento';
+    if (tab === 'articles') return '/estudos-arqueologia';
+    if (tab === 'games') {
+      if (subTab === 'quiz') return '/jogos/quiz-biblico';
+      return '/jogos/caca-palavras';
+    }
+    return '/palavra-do-dia';
+  };
+
+  const getStateFromPath = () => {
+    if (typeof window === 'undefined') return { tab: 'daily', sub: 'wordsearch' };
+    const path = window.location.pathname;
+    if (path.includes('/biblia-sagrada')) return { tab: 'bible', sub: 'wordsearch' };
+    if (path.includes('/para-o-seu-momento')) return { tab: 'moments', sub: 'wordsearch' };
+    if (path.includes('/estudos-arqueologia')) return { tab: 'articles', sub: 'wordsearch' };
+    if (path.includes('/jogos')) {
+      if (path.includes('quiz-biblico')) return { tab: 'games', sub: 'quiz' };
+      return { tab: 'games', sub: 'wordsearch' };
+    }
+    return { tab: 'daily', sub: 'wordsearch' };
+  };
+
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<'daily' | 'bible' | 'games' | 'moments' | 'articles'>('daily');
-  const [gamesSubTab, setGamesSubTab] = useState<'wordsearch' | 'quiz'>('wordsearch');
+  const routeState = getStateFromPath();
+  const [currentTab, setCurrentTab] = useState<'daily' | 'bible' | 'moments' | 'games' | 'articles'>(routeState.tab as any);
+  const [gamesSubTab, setGamesSubTab] = useState<'wordsearch' | 'quiz'>(routeState.sub as any);
 
   // Navegação contextual para a Bíblia
   const [bibleTarget, setBibleTarget] = useState<{ bookId: string; chapter: number; verse?: number }>({
@@ -30,6 +56,23 @@ export default function App() {
   // Versículos salvos no Caderno Espiritual
   const [highlights, setHighlights] = useState<HighlightedVerse[]>([]);
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const state = getStateFromPath();
+      setCurrentTab(state.tab as any);
+      setGamesSubTab(state.sub as any);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const path = getPathFromState(currentTab, gamesSubTab);
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path);
+    }
+  }, [currentTab, gamesSubTab]);
   const [bookmarksModalOpen, setBookmarksModalOpen] = useState(false);
 
   useEffect(() => {
