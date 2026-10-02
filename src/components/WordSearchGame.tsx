@@ -22,11 +22,13 @@ export const WordSearchGame: React.FC = () => {
     if (typeof window === 'undefined') return estadoInicial;
     try {
       const salvo = localStorage.getItem('cristoguia_wordsearch_state');
-      if (!salvo || salvo === 'undefined' || salvo === 'null') return estadoInicial;
-      const parsed = JSON.parse(salvo);
-      if (typeof parsed !== 'object' || parsed === null) return estadoInicial;
+      const parsed = salvo ? JSON.parse(salvo) : null;
+      if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.foundWords)) {
+        throw new Error('Estado inválido');
+      }
       return { ...estadoInicial, ...parsed };
     } catch (e) {
+      localStorage.removeItem('cristoguia_wordsearch_state');
       return estadoInicial;
     }
   };
@@ -78,7 +80,11 @@ export const WordSearchGame: React.FC = () => {
     const interval = setInterval(() => {
       setElapsedSeconds(s => s + 1);
     }, 1000);
-    return () => clearInterval(interval);
+    if (!currentTheme || !currentTheme.words || currentTheme.words.length === 0) {
+    return <div className="p-10 text-center font-sans-ui text-[#5E6D82] font-bold bg-white rounded-3xl border-2 border-[#E8E2D5] max-w-5xl mx-auto my-8">Carregando desafios do dia...</div>;
+  }
+
+  return () => clearInterval(interval);
   }, [gameWon]);
 
   // Vitória

@@ -16,11 +16,13 @@ export const BibleQuiz: React.FC = () => {
     if (typeof window === 'undefined') return estadoInicial;
     try {
       const salvo = localStorage.getItem('cristoguia_quiz_state');
-      if (!salvo || salvo === 'undefined' || salvo === 'null') return estadoInicial;
-      const parsed = JSON.parse(salvo);
-      if (typeof parsed !== 'object' || parsed === null) return estadoInicial;
+      const parsed = salvo ? JSON.parse(salvo) : null;
+      if (!parsed || typeof parsed !== 'object' || typeof parsed.currentIndex !== 'number') {
+        throw new Error('Estado inválido');
+      }
       return { ...estadoInicial, ...parsed };
     } catch (e) {
+      localStorage.removeItem('cristoguia_quiz_state');
       return estadoInicial;
     }
   };
@@ -47,12 +49,11 @@ export const BibleQuiz: React.FC = () => {
   const certificateCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const questions = THEOLOGICAL_QUIZ_QUESTIONS.filter(q => q.level === selectedLevel);
-  // Fallback seguro caso as perguntas não existam ou selectedLevel seja inválido
-  const safeQuestions = questions.length > 0 ? questions : THEOLOGICAL_QUIZ_QUESTIONS.filter(q => q.level === 'neofito');
-  const safeIndex = currentIndex >= 0 && currentIndex < safeQuestions.length ? currentIndex : 0;
-  const currentQ = safeQuestions[safeIndex] || {
-    question: "Carregando...", options: [], correctIndex: 0, theologicalRationale: "", passageRef: "", biblicalProof: ""
-  };
+  const currentQ = questions[currentIndex];
+
+  if (!quizFinished && (!questions || questions.length === 0 || !currentQ)) {
+    return <div className="p-10 text-center font-sans-ui text-[#5E6D82] font-bold bg-white rounded-3xl border-2 border-[#E8E2D5]">Carregando desafios ou reiniciando nível...</div>;
+  }
 
   const handleSelectOption = (index: number) => {
     if (showFeedback) return;

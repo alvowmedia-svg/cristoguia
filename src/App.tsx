@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { DailyVerseHero } from './components/DailyVerseHero';
 import { BibleReader } from './components/BibleReader';
 import { WordSearchGame } from './components/WordSearchGame';
@@ -396,7 +397,9 @@ export default function App() {
               </div>
             </div>
 
-            {gamesSubTab === 'wordsearch' ? <WordSearchGame /> : <BibleQuiz />}
+            <ErrorBoundary>
+              {gamesSubTab === 'wordsearch' ? <WordSearchGame /> : <BibleQuiz />}
+            </ErrorBoundary>
           </div>
         )}
 
