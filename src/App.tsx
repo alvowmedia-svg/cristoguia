@@ -17,7 +17,7 @@ import { EDITORIAL_ARTICLES } from './data/articles';
 const HIGHLIGHTS_STORAGE_KEY = 'cristoguia_highlights_v1';
 
   const getPathFromState = (tab: string, subTab: string) => {
-    if (tab === 'daily') return '/palavra-do-dia';
+    if (tab === 'daily') return '/';
     if (tab === 'bible') return '/biblia-sagrada';
     if (tab === 'moments') return '/para-o-seu-momento';
     if (tab === 'articles') return '/estudos-arqueologia';
@@ -25,12 +25,13 @@ const HIGHLIGHTS_STORAGE_KEY = 'cristoguia_highlights_v1';
       if (subTab === 'quiz') return '/jogos/quiz-biblico';
       return '/jogos/caca-palavras';
     }
-    return '/palavra-do-dia';
+    return '/';
   };
 
   const getStateFromPath = () => {
     if (typeof window === 'undefined') return { tab: 'daily', sub: 'wordsearch' };
     const path = window.location.pathname;
+    if (path === '/' || path === '/palavra-do-dia') return { tab: 'daily', sub: 'wordsearch' };
     if (path.includes('/biblia-sagrada')) return { tab: 'bible', sub: 'wordsearch' };
     if (path.includes('/para-o-seu-momento')) return { tab: 'moments', sub: 'wordsearch' };
     if (path.includes('/estudos-arqueologia')) return { tab: 'articles', sub: 'wordsearch' };

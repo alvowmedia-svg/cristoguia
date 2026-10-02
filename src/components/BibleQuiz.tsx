@@ -40,19 +40,26 @@ export const BibleQuiz: React.FC = () => {
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('cristoguia_quiz_state', JSON.stringify({
-        selectedLevel, currentIndex, selectedAnswer, score, showFeedback, quizFinished, userName
-      }));
+      try {
+        localStorage.setItem('cristoguia_quiz_state', JSON.stringify({
+          selectedLevel, currentIndex, selectedAnswer, score, showFeedback, quizFinished, userName
+        }));
+      } catch (e) {
+        console.error('Erro salvando state:', e);
+      }
     }
   }, [selectedLevel, currentIndex, selectedAnswer, score, showFeedback, quizFinished, userName]);
 
   const certificateCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const questions = THEOLOGICAL_QUIZ_QUESTIONS.filter(q => q.level === selectedLevel);
-  const safeIndex = currentIndex >= 0 && currentIndex < questions.length ? currentIndex : 0;
-  const currentQ = questions[safeIndex];
+  const questions = Array.isArray(THEOLOGICAL_QUIZ_QUESTIONS) ? THEOLOGICAL_QUIZ_QUESTIONS.filter(q => q.level === selectedLevel) : [];
+  const safeQuestions = questions.length > 0 ? questions : (THEOLOGICAL_QUIZ_QUESTIONS.filter(q => q.level === 'neofito') || []);
+  const safeIndex = currentIndex >= 0 && currentIndex < safeQuestions.length ? currentIndex : 0;
+  const currentQ = safeQuestions[safeIndex] || {
+    question: "Erro ao carregar a pergunta.", options: [], correctIndex: 0, theologicalRationale: "", passageRef: "", biblicalProof: ""
+  };
 
-  if (!quizFinished && (!questions || questions.length === 0 || !currentQ)) {
+  if (!quizFinished && (!safeQuestions || safeQuestions.length === 0 || !currentQ)) {
     return <div className="p-10 text-center font-sans-ui text-[#5E6D82] font-bold bg-white rounded-3xl border-2 border-[#E8E2D5]">Carregando desafios ou reiniciando nível...</div>;
   }
 

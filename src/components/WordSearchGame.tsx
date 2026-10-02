@@ -101,95 +101,97 @@ export const WordSearchGame: React.FC = () => {
    * Algoritmo de posicionamento de palavras bíblicas
    */
   const generateBoard = (theme: WordSearchTheme) => {
-  // PRNG Determinístico baseado na data atual
-  const getSeededRandom = () => {
-    const date = new Date();
-    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-    let seed = 0;
-    for (let i = 0; i < dateKey.length; i++) {
-      seed = (seed << 5) - seed + dateKey.charCodeAt(i);
-      seed |= 0;
-    }
-    return () => {
-      let t = seed += 0x6D2B79F5;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  };
-    const random = getSeededRandom();
     const size = gridSize;
-    const newGrid: string[][] = Array.from({ length: size }, () => Array(size).fill(''));
+    let newGrid: string[][] = Array.from({ length: size }, () => Array(size).fill(''));
     const placedPositions: { [word: string]: CellPosition[] } = {};
 
-    const directions: [number, number][] = [
-      [0, 1],   // horizontal
-      [1, 0],   // vertical
-      [1, 1],   // diagonal descendo
-      [-1, 1]   // diagonal subindo
-    ];
+    try {
+      const date = new Date();
+      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+      let seed = 0;
+      for (let i = 0; i < dateKey.length; i++) {
+        seed = (seed << 5) - seed + dateKey.charCodeAt(i);
+        seed |= 0;
+      }
+      const random = () => {
+        let t = seed += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
 
-    if (!theme || !theme.words) return;
-    theme.words.forEach(w => {
-      const term = w.term.toUpperCase();
-      let placed = false;
-      let attempts = 0;
+      const directions: [number, number][] = [[0, 1], [1, 0], [1, 1], [-1, 1]];
 
-      while (!placed && attempts < 150) {
-        attempts++;
-        const dir = directions[Math.floor(random() * directions.length)];
-        const [dr, dc] = dir;
+      if (theme && Array.isArray(theme.words)) {
+        theme.words.forEach(w => {
+          if (!w || !w.term) return;
+          const term = w.term.toUpperCase();
+          let placed = false;
+          let attempts = 0;
 
-        const maxR = dr === 1 ? size - term.length : dr === -1 ? size - 1 : size - 1;
-        const minR = dr === -1 ? term.length - 1 : 0;
-        const maxC = size - term.length;
+          while (!placed && attempts < 150) {
+            attempts++;
+            const dir = directions[Math.floor(random() * directions.length)];
+            const [dr, dc] = dir;
 
-        if (maxR < minR || maxC < 0) continue;
+            const maxR = dr === 1 ? size - term.length : dr === -1 ? size - 1 : size - 1;
+            const minR = dr === -1 ? term.length - 1 : 0;
+            const maxC = size - term.length;
 
-        const startR = Math.floor(random() * (maxR - minR + 1)) + minR;
-        const startC = Math.floor(random() * (maxC + 1));
+            if (maxR < minR || maxC < 0) continue;
 
-        let canPlace = true;
-        const positions: CellPosition[] = [];
+            const startR = Math.floor(random() * (maxR - minR + 1)) + minR;
+            const startC = Math.floor(random() * (maxC + 1));
 
-        for (let i = 0; i < term.length; i++) {
-          const r = startR + i * dr;
-          const c = startC + i * dc;
-          
-          if (r < 0 || r >= size || c < 0 || c >= size) {
-             canPlace = false;
-             break;
-          }
-          
-          const currentCell = newGrid[r][c];
+            let canPlace = true;
+            const positions: CellPosition[] = [];
 
-          if (currentCell !== '' && currentCell !== term[i]) {
-            canPlace = false;
-            break;
-          }
-          positions.push({ r, c });
-        }
-
-        if (canPlace) {
-          positions.forEach((pos, i) => {
-            if (pos.r >= 0 && pos.r < size && pos.c >= 0 && pos.c < size) {
-              newGrid[pos.r][pos.c] = term[i];
+            for (let i = 0; i < term.length; i++) {
+              const r = startR + i * dr;
+              const c = startC + i * dc;
+              if (r < 0 || r >= size || c < 0 || c >= size) { canPlace = false; break; }
+              const currentCell = newGrid[r]?.[c];
+              if (currentCell !== '' && currentCell !== term[i]) { canPlace = false; break; }
+              positions.push({ r, c });
             }
-          });
-          placedPositions[term] = positions;
-          placed = true;
-        }
-      }
-    });
 
-    // Letras de preenchimento
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        if (!newGrid[r][c]) {
-          newGrid[r][c] = letters[Math.floor(random() * letters.length)];
+            if (canPlace) {
+              positions.forEach((pos, i) => {
+                if (newGrid[pos.r]) newGrid[pos.r][pos.c] = term[i];
+              });
+              placedPositions[term] = positions;
+              placed = true;
+            }
+          }
+        });
+      }
+
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+          if (newGrid[r] && !newGrid[r][c]) {
+            newGrid[r][c] = letters[Math.floor(random() * letters.length)];
+          }
         }
       }
+    } catch (e) {
+      console.error('Erro gerando grid dinâmico. Usando fallback estático:', e);
+      // Fallback Estático Absoluto Garantido (12x12)
+      const fallback = [
+        ['J','E','S','U','S','A','B','C','D','E','F','G'],
+        ['A','H','I','J','K','L','M','N','O','P','Q','R'],
+        ['M','F','E','S','T','U','V','X','Y','Z','A','B'],
+        ['O','C','D','P','E','F','G','H','I','J','K','L'],
+        ['R','M','N','O','E','P','Q','R','S','T','U','V'],
+        ['X','Y','Z','A','B','R','C','D','E','F','G','H'],
+        ['I','J','K','L','M','N','A','O','P','Q','R','S'],
+        ['T','U','V','G','R','A','C','A','X','Y','Z','A'],
+        ['B','C','D','E','F','G','H','I','N','J','K','L'],
+        ['M','N','O','P','Q','R','S','T','U','C','V','X'],
+        ['P','A','Z','Y','Z','A','B','C','D','E','A','F'],
+        ['G','H','I','J','K','L','M','N','O','P','Q','R']
+      ];
+      newGrid = fallback;
     }
 
     setGrid(newGrid);
