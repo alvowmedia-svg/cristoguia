@@ -37,6 +37,7 @@ export const WordSearchGame: React.FC = () => {
   const [currentTheme, setCurrentTheme] = useState<WordSearchTheme>(() => {
     return WORD_SEARCH_THEMES.find(t => t.id === initialState.currentThemeId) || WORD_SEARCH_THEMES[0] || { id: 'wst-00', title: 'Carregando', subtitle: '', words: [] };
   });
+  
   const [gridSize] = useState<number>(12);
   const [grid, setGrid] = useState<string[][]>(Array.isArray(initialState.grid) ? initialState.grid : []);
   const [foundWords, setFoundWords] = useState<string[]>(Array.isArray(initialState.foundWords) ? initialState.foundWords : []);
@@ -47,6 +48,12 @@ export const WordSearchGame: React.FC = () => {
   const [gameWon, setGameWon] = useState<boolean>(!!initialState.gameWon);
   const [hideWordList, setHideWordList] = useState<boolean>(!!initialState.hideWordList);
 
+  const [isSelecting, setIsSelecting] = useState<boolean>(false);
+  const [selectionStart, setSelectionStart] = useState<CellPosition | null>(null);
+  const [selectionCurrent, setSelectionCurrent] = useState<CellPosition | null>(null);
+  const [activeSelectedCells, setActiveSelectedCells] = useState<CellPosition[]>([]);
+  const [activeMicroficha, setActiveMicroficha] = useState<WordSearchWord | null>(null);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('cristoguia_wordsearch_state', JSON.stringify({
@@ -56,16 +63,17 @@ export const WordSearchGame: React.FC = () => {
   }, [currentTheme, grid, foundWords, foundCoordinates, elapsedSeconds, gameWon, hideWordList]);
 
   useEffect(() => {
-    if (grid.length === 0) {
+    if (!Array.isArray(grid) || grid.length === 0) {
       generateBoard(currentTheme);
       setElapsedSeconds(0);
       setGameWon(false);
     }
-  }, [currentTheme]); // Only generate if grid is empty (e.g. initial load without cache or theme change handled below)
+  }, [currentTheme]);
 
   const handleRestart = (theme = currentTheme) => {
     try {
       localStorage.removeItem('cristoguia_wordsearch_state');
+      localStorage.removeItem('cristoguia_quiz_state');
     } catch(e) {}
     generateBoard(theme);
     setElapsedSeconds(0);
@@ -83,55 +91,63 @@ export const WordSearchGame: React.FC = () => {
     const interval = setInterval(() => {
       setElapsedSeconds(s => s + 1);
     }, 1000);
-    if (!currentTheme || !currentTheme.words || currentTheme.words.length === 0) {
-    return <div className="p-10 text-center font-sans-ui text-[#5E6D82] font-bold bg-white rounded-3xl border-2 border-[#E8E2D5] max-w-5xl mx-auto my-8">Carregando desafios do dia...</div>;
-  }
-
-  return () => clearInterval(interval);
+    
+    return () => clearInterval(interval);
   }, [gameWon]);
 
   // Vitória
   useEffect(() => {
-    if (foundWords.length > 0 && foundWords.length === currentTheme.words.length) {
+    if (foundWords.length > 0 && currentTheme.words && foundWords.length === currentTheme.words.length) {
       setGameWon(true);
     }
   }, [foundWords, currentTheme]);
 
   /**
-   * Algoritmo de posicionamento de palavras bíblicas
+   * Algoritmo de posicionamento de palavras bíblicas - Limite Rígido de Tentativas e Fallback
    */
   const generateBoard = (theme: WordSearchTheme) => {
     const size = gridSize;
     let newGrid: string[][] = Array.from({ length: size }, () => Array(size).fill(''));
-    const placedPositions: { [word: string]: CellPosition[] } = {};
+    
+    // Fallback Estático Absoluto Garantido (12x12)
+    const fallback = [
+      ['J','E','S','U','S','A','B','C','D','E','F','G'],
+      ['A','H','I','J','K','L','M','N','O','P','Q','R'],
+      ['M','F','E','S','T','U','V','X','Y','Z','A','B'],
+      ['O','C','D','P','E','F','G','H','I','J','K','L'],
+      ['R','M','N','O','E','P','Q','R','S','T','U','V'],
+      ['X','Y','Z','A','B','R','C','D','E','F','G','H'],
+      ['I','J','K','L','M','N','A','O','P','Q','R','S'],
+      ['T','U','V','G','R','A','C','A','X','Y','Z','A'],
+      ['B','C','D','E','F','G','H','I','N','J','K','L'],
+      ['M','N','O','P','Q','R','S','T','U','C','V','X'],
+      ['P','A','Z','Y','Z','A','B','C','D','E','A','F'],
+      ['G','H','I','J','K','L','M','N','O','P','Q','R']
+    ];
 
     try {
-      const date = new Date();
-      const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-      let seed = 0;
-      for (let i = 0; i < dateKey.length; i++) {
-        seed = (seed << 5) - seed + dateKey.charCodeAt(i);
-        seed |= 0;
-      }
-      const random = () => {
-        let t = seed += 0x6D2B79F5;
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
-
+      const startTime = performance.now();
+      let failedGeneration = false;
+      
       const directions: [number, number][] = [[0, 1], [1, 0], [1, 1], [-1, 1]];
 
       if (theme && Array.isArray(theme.words)) {
         theme.words.forEach(w => {
-          if (!w || !w.term) return;
+          if (!w || !w.term || failedGeneration) return;
           const term = w.term.toUpperCase();
           let placed = false;
           let attempts = 0;
 
-          while (!placed && attempts < 150) {
+          // Limite rígido de 50 tentativas por palavra
+          while (!placed && attempts < 50) {
+            // Se passar de 100ms, aborte para evitar travamentos
+            if (performance.now() - startTime > 100) {
+              failedGeneration = true;
+              break;
+            }
+            
             attempts++;
-            const dir = directions[Math.floor(random() * directions.length)];
+            const dir = directions[Math.floor(Math.random() * directions.length)];
             const [dr, dc] = dir;
 
             const maxR = dr === 1 ? size - term.length : dr === -1 ? size - 1 : size - 1;
@@ -140,8 +156,8 @@ export const WordSearchGame: React.FC = () => {
 
             if (maxR < minR || maxC < 0) continue;
 
-            const startR = Math.floor(random() * (maxR - minR + 1)) + minR;
-            const startC = Math.floor(random() * (maxC + 1));
+            const startR = Math.floor(Math.random() * (maxR - minR + 1)) + minR;
+            const startC = Math.floor(Math.random() * (maxC + 1));
 
             let canPlace = true;
             const positions: CellPosition[] = [];
@@ -150,47 +166,43 @@ export const WordSearchGame: React.FC = () => {
               const r = startR + i * dr;
               const c = startC + i * dc;
               if (r < 0 || r >= size || c < 0 || c >= size) { canPlace = false; break; }
-              const currentCell = newGrid[r]?.[c];
+              
+              // Proteção defensiva de leitura no grid
+              const currentCell = newGrid?.[r]?.[c];
               if (currentCell !== '' && currentCell !== term[i]) { canPlace = false; break; }
               positions.push({ r, c });
             }
 
             if (canPlace) {
               positions.forEach((pos, i) => {
-                if (newGrid[pos.r]) newGrid[pos.r][pos.c] = term[i];
+                if (newGrid && newGrid[pos.r]) {
+                  newGrid[pos.r][pos.c] = term[i];
+                }
               });
-              placedPositions[term] = positions;
               placed = true;
             }
           }
+          
+          if (!placed) {
+             failedGeneration = true;
+          }
         });
+      }
+
+      if (failedGeneration) {
+        throw new Error('Falha na geração estrita. Ativando Fallback.');
       }
 
       const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
           if (newGrid[r] && !newGrid[r][c]) {
-            newGrid[r][c] = letters[Math.floor(random() * letters.length)];
+            newGrid[r][c] = letters[Math.floor(Math.random() * letters.length)];
           }
         }
       }
     } catch (e) {
       console.error('Erro gerando grid dinâmico. Usando fallback estático:', e);
-      // Fallback Estático Absoluto Garantido (12x12)
-      const fallback = [
-        ['J','E','S','U','S','A','B','C','D','E','F','G'],
-        ['A','H','I','J','K','L','M','N','O','P','Q','R'],
-        ['M','F','E','S','T','U','V','X','Y','Z','A','B'],
-        ['O','C','D','P','E','F','G','H','I','J','K','L'],
-        ['R','M','N','O','E','P','Q','R','S','T','U','V'],
-        ['X','Y','Z','A','B','R','C','D','E','F','G','H'],
-        ['I','J','K','L','M','N','A','O','P','Q','R','S'],
-        ['T','U','V','G','R','A','C','A','X','Y','Z','A'],
-        ['B','C','D','E','F','G','H','I','N','J','K','L'],
-        ['M','N','O','P','Q','R','S','T','U','C','V','X'],
-        ['P','A','Z','Y','Z','A','B','C','D','E','A','F'],
-        ['G','H','I','J','K','L','M','N','O','P','Q','R']
-      ];
       newGrid = fallback;
     }
 
@@ -198,6 +210,7 @@ export const WordSearchGame: React.FC = () => {
     setFoundWords([]);
     setFoundCoordinates({});
     setActiveSelectedCells([]);
+    setIsSelecting(false);
   };
 
   const computeLineCells = (start: CellPosition, end: CellPosition): CellPosition[] => {
@@ -246,10 +259,10 @@ export const WordSearchGame: React.FC = () => {
       return;
     }
 
-    const selectedLetters = activeSelectedCells.map(pos => grid[pos.r]?.[pos.c] || '').join('');
+    const selectedLetters = activeSelectedCells.map(pos => grid?.[pos.r]?.[pos.c] || '').join('');
     const reversedLetters = selectedLetters.split('').reverse().join('');
 
-    const match = currentTheme.words.find(w => {
+    const match = currentTheme.words?.find(w => {
       const t = w.term.toUpperCase();
       return (t === selectedLetters || t === reversedLetters) && !foundWords.includes(t);
     });
@@ -285,6 +298,13 @@ export const WordSearchGame: React.FC = () => {
     const secs = totalSeconds % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
+
+  if (!currentTheme || !Array.isArray(currentTheme.words) || currentTheme.words.length === 0) {
+    return <div className="p-10 text-center font-sans-ui text-[#5E6D82] font-bold bg-white rounded-3xl border-2 border-[#E8E2D5] max-w-5xl mx-auto my-8">Carregando desafios do dia...</div>;
+  }
+
+  // Proteção extra para garantir que grid é renderizável
+  const isGridValid = Array.isArray(grid) && grid.length > 0;
 
   return (
     <div className="w-full py-8 px-4 sm:px-8 max-w-5xl mx-auto">
@@ -363,10 +383,12 @@ export const WordSearchGame: React.FC = () => {
             className="grid grid-cols-12 gap-1 sm:gap-2 touch-none max-w-md sm:max-w-lg mx-auto"
             onPointerLeave={handlePointerUp}
           >
-            {grid.map((row, r) =>
-              row.map((letter, c) => {
+            {isGridValid && grid.map((row, r) =>
+              Array.isArray(row) && row.map((letter, c) => {
                 const selected = isCellSelected(r, c);
                 const found = isCellFound(r, c);
+                // Fallback do caractere
+                const safeLetter = grid?.[r]?.[c] ?? 'A';
 
                 return (
                   <div
@@ -382,7 +404,7 @@ export const WordSearchGame: React.FC = () => {
                         : 'bg-[#F9F7F1] text-[#1B365D] hover:bg-[#F3EFE0] border border-[#E8E2D5]/70'
                     }`}
                   >
-                    {letter}
+                    {safeLetter}
                   </div>
                 );
               })
